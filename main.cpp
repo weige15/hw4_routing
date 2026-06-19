@@ -228,35 +228,15 @@ bool compute_mst_total(size_t n, std::vector<Edge>& edges, int64_t& total, std::
     return false;
 }
 
-void add_duplicate_edges(const std::vector<Point>& points, std::vector<Edge>& edges) {
-    std::vector<uint32_t> order(points.size());
-    std::iota(order.begin(), order.end(), 0);
-    std::sort(order.begin(), order.end(), [&](uint32_t a, uint32_t b) {
-        const Point& pa = points[a];
-        const Point& pb = points[b];
-        return std::tie(pa.x, pa.y, pa.id) < std::tie(pb.x, pb.y, pb.id);
-    });
-
-    for (size_t i = 1; i < order.size(); ++i) {
-        const Point& prev = points[order[i - 1]];
-        const Point& cur = points[order[i]];
-        if (prev.x == cur.x && prev.y == cur.y) {
-            add_edge(points, prev.id, cur.id, edges);
-        }
-    }
-}
-
 void generate_candidates(const std::vector<Point>& points, std::vector<Edge>& edges) {
     const size_t n = points.size();
     if (n <= 1) {
         return;
     }
 
-    if (n <= (std::numeric_limits<size_t>::max() - edges.size()) / 5) {
-        edges.reserve(edges.size() + 5 * n);
+    if (n <= (std::numeric_limits<size_t>::max() - edges.size()) / 4) {
+        edges.reserve(edges.size() + 4 * n);
     }
-
-    add_duplicate_edges(points, edges);
 
     std::vector<int64_t> wx(n);
     std::vector<int64_t> wy(n);
