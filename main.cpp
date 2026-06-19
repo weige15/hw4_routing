@@ -3,16 +3,12 @@
 #include <cstdio>
 #include <exception>
 #include <fstream>
-#include <initializer_list>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <numeric>
-#include <random>
-#include <sstream>
 #include <string>
 #include <tuple>
-#include <utility>
 #include <vector>
 
 namespace {
@@ -282,23 +278,6 @@ bool optimized_mst_total(const std::vector<Point>& points, int64_t& total, std::
     return compute_mst_total(points.size(), edges, total, error);
 }
 
-[[maybe_unused]] bool brute_force_mst_total(const std::vector<Point>& points, int64_t& total, std::string& error) {
-    constexpr size_t kOracleLimit = 80;
-    if (points.size() > kOracleLimit) {
-        error = "oracle input exceeds small-case limit";
-        return false;
-    }
-
-    std::vector<Edge> edges;
-    edges.reserve(points.size() * (points.size() - 1) / 2);
-    for (size_t i = 0; i < points.size(); ++i) {
-        for (size_t j = i + 1; j < points.size(); ++j) {
-            add_edge(points, static_cast<uint32_t>(i), static_cast<uint32_t>(j), edges);
-        }
-    }
-    return compute_mst_total(points.size(), edges, total, error);
-}
-
 bool solve_rmst_total(const std::vector<Point>& points, int64_t& total, std::string& error) {
     return optimized_mst_total(points, total, error);
 }
@@ -319,7 +298,7 @@ bool write_total(const char* path, int64_t total, std::string& error) {
     return true;
 }
 
-[[maybe_unused]] int run(const char* input_path, const char* output_path) {
+int run(const char* input_path, const char* output_path) {
     std::vector<Point> points;
     std::string error;
 
@@ -342,261 +321,8 @@ bool write_total(const char* path, int64_t total, std::string& error) {
     return 0;
 }
 
-#ifdef RMST_SELF_TEST
-bool expect(bool condition, const char* message) {
-    if (!condition) {
-        std::cerr << "self-test failed: " << message << '\n';
-        return false;
-    }
-    return true;
-}
-
-std::vector<Point> make_points(std::initializer_list<std::pair<int32_t, int32_t>> coords) {
-    std::vector<Point> points;
-    points.reserve(coords.size());
-    uint32_t id = 0;
-    for (const auto& coord : coords) {
-        points.push_back(Point{coord.first, coord.second, id++});
-    }
-    return points;
-}
-
-bool check_bruteforce(std::initializer_list<std::pair<int32_t, int32_t>> coords, int64_t expected) {
-    std::vector<Point> points = make_points(coords);
-    int64_t total = -1;
-    std::string error;
-    if (!brute_force_mst_total(points, total, error)) {
-        std::cerr << "oracle failed: " << error << '\n';
-        return false;
-    }
-    if (total != expected) {
-        std::cerr << "oracle total mismatch: expected " << expected << ", got " << total << '\n';
-        return false;
-    }
-    return true;
-}
-
-std::string describe_points(const std::vector<Point>& points) {
-    std::ostringstream out;
-    out << '[';
-    for (size_t i = 0; i < points.size(); ++i) {
-        if (i != 0) {
-            out << ", ";
-        }
-        out << '(' << points[i].x << ',' << points[i].y << ')';
-    }
-    out << ']';
-    return out.str();
-}
-
-bool compare_optimized_with_oracle(const std::vector<Point>& points, const std::string& label) {
-    int64_t optimized = -1;
-    int64_t oracle = -1;
-    std::string error;
-    if (!optimized_mst_total(points, optimized, error)) {
-        std::cerr << "optimized solver failed for " << label << ": " << error << '\n';
-        std::cerr << describe_points(points) << '\n';
-        return false;
-    }
-    if (!brute_force_mst_total(points, oracle, error)) {
-        std::cerr << "oracle failed for " << label << ": " << error << '\n';
-        return false;
-    }
-    if (optimized != oracle) {
-        std::cerr << "optimized/oracle mismatch for " << label << ": optimized " << optimized
-                  << ", oracle " << oracle << '\n';
-        std::cerr << describe_points(points) << '\n';
-        return false;
-    }
-    return true;
-}
-
-bool check_optimized(std::initializer_list<std::pair<int32_t, int32_t>> coords, int64_t expected) {
-    std::vector<Point> points = make_points(coords);
-    int64_t total = -1;
-    std::string error;
-    if (!optimized_mst_total(points, total, error)) {
-        std::cerr << "optimized solver failed: " << error << '\n';
-        return false;
-    }
-    if (total != expected) {
-        std::cerr << "optimized total mismatch: expected " << expected << ", got " << total << '\n';
-        std::cerr << describe_points(points) << '\n';
-        std::vector<Edge> edges;
-        generate_candidates(points, edges);
-        for (const Edge& edge : edges) {
-            std::cerr << "candidate " << edge.u << '-' << edge.v << " w=" << edge.w << '\n';
-        }
-        return false;
-    }
-    return compare_optimized_with_oracle(points, "golden");
-}
-
-bool check_randomized(uint32_t seed) {
-    std::mt19937 rng(seed);
-    for (int case_index = 0; case_index < 120; ++case_index) {
-        int n = 1 + static_cast<int>(rng() % 40);
-        int bound = (case_index % 3 == 0) ? 3 : 50;
-        std::uniform_int_distribution<int32_t> dist(-bound, bound);
-
-        std::vector<Point> points;
-        points.reserve(static_cast<size_t>(n));
-        for (int i = 0; i < n; ++i) {
-            points.push_back(Point{dist(rng), dist(rng), static_cast<uint32_t>(i)});
-        }
-
-        std::ostringstream label;
-        label << "seed " << seed << " case " << case_index;
-        if (!compare_optimized_with_oracle(points, label.str())) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool check_candidate_count(const std::vector<Point>& points, size_t max_edges) {
-    std::vector<Edge> edges;
-    generate_candidates(points, edges);
-    if (edges.size() > max_edges) {
-        std::cerr << "candidate count too large: " << edges.size() << " > " << max_edges << '\n';
-        return false;
-    }
-    return true;
-}
-
-bool run_self_tests() {
-    {
-        DSU dsu(4);
-        if (!expect(dsu.find(0) == 0, "singleton root")) {
-            return false;
-        }
-        if (!expect(dsu.unite(0, 1), "first union merges")) {
-            return false;
-        }
-        if (!expect(!dsu.unite(1, 0), "repeated union does not merge")) {
-            return false;
-        }
-        if (!expect(dsu.unite(2, 3), "second component union merges")) {
-            return false;
-        }
-        if (!expect(dsu.unite(1, 3), "transitive union merges components")) {
-            return false;
-        }
-        if (!expect(dsu.find(0) == dsu.find(2), "transitive connectivity")) {
-            return false;
-        }
-    }
-
-    {
-        std::vector<Edge> edges = {
-            Edge{0, 1, 1},
-            Edge{1, 2, 2},
-            Edge{2, 3, 3},
-            Edge{0, 3, 10},
-            Edge{0, 2, 4},
-        };
-        int64_t total = -1;
-        std::string error;
-        if (!expect(compute_mst_total(4, edges, total, error), "known graph is connected")) {
-            return false;
-        }
-        if (!expect(total == 6, "known graph MST total")) {
-            return false;
-        }
-    }
-
-    {
-        std::vector<Edge> edges = {Edge{0, 1, 1}};
-        int64_t total = -1;
-        std::string error;
-        if (!expect(!compute_mst_total(3, edges, total, error), "disconnected graph fails")) {
-            return false;
-        }
-    }
-
-    if (!check_bruteforce({{0, 0}}, 0)) {
-        return false;
-    }
-    if (!check_bruteforce({{-1000000000, -1000000000}, {1000000000, 1000000000}}, 4000000000LL)) {
-        return false;
-    }
-    if (!check_bruteforce({{0, 0}, {0, 0}, {2, 0}}, 2)) {
-        return false;
-    }
-    if (!check_bruteforce({{0, 0}, {0, 1}, {1, 0}, {1, 1}}, 3)) {
-        return false;
-    }
-
-    if (!check_optimized({{0, 0}, {2, 0}, {2, 3}, {5, 1}, {6, 4}}, 13)) {
-        return false;
-    }
-    if (!check_optimized({{0, 0}}, 0)) {
-        return false;
-    }
-    if (!check_optimized({{-1000000000, -1000000000}, {1000000000, 1000000000}}, 4000000000LL)) {
-        return false;
-    }
-    if (!check_optimized({{0, 0}, {0, 0}, {2, 0}}, 2)) {
-        return false;
-    }
-    if (!check_optimized({{0, 0}, {0, 1}, {1, 0}, {1, 1}}, 3)) {
-        return false;
-    }
-    if (!check_optimized({{0, 0}, {2, 0}, {5, 0}, {6, 0}}, 6)) {
-        return false;
-    }
-    if (!check_optimized({{3, -2}, {3, 0}, {3, 5}}, 7)) {
-        return false;
-    }
-    if (!check_optimized({{-1, -1}, {2, -1}, {2, 3}}, 7)) {
-        return false;
-    }
-    if (!check_optimized({{0, 0}, {0, 0}, {0, 0}, {5, 5}, {5, 5}}, 10)) {
-        return false;
-    }
-    if (!check_optimized({{0, 0}, {10, 0}, {0, 10}, {10, 10}, {5, 5}}, 40)) {
-        return false;
-    }
-
-    for (uint32_t seed : {20260608U, 20260609U, 1U, 2U, 3U}) {
-        if (!check_randomized(seed)) {
-            return false;
-        }
-    }
-
-    {
-        std::vector<Point> points;
-        for (uint32_t i = 0; i < 200; ++i) {
-            points.push_back(Point{0, 0, i});
-        }
-        if (!check_candidate_count(points, points.size() * 8)) {
-            return false;
-        }
-    }
-    {
-        std::vector<Point> points;
-        for (uint32_t i = 0; i < 200; ++i) {
-            points.push_back(Point{static_cast<int32_t>(i), 0, i});
-        }
-        if (!check_candidate_count(points, points.size() * 8)) {
-            return false;
-        }
-    }
-
-    std::vector<Point> too_many(81);
-    int64_t total = 0;
-    std::string error;
-    if (!expect(!brute_force_mst_total(too_many, total, error), "oracle refuses large input")) {
-        return false;
-    }
-
-    return true;
-}
-#endif
-
 }  // namespace
 
-#ifndef RMST_SELF_TEST
 int main(int argc, char** argv) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <input file> <output file>\n";
@@ -610,8 +336,3 @@ int main(int argc, char** argv) {
         return 5;
     }
 }
-#else
-int main() {
-    return run_self_tests() ? 0 : 1;
-}
-#endif

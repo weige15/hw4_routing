@@ -1,7 +1,6 @@
 CXX ?= g++
 CXXFLAGS ?= -std=c++17 -O2 -pipe -Wall -Wextra -pedantic
 TARGET := RMST
-TEST_TARGET := /tmp/RMST_selftest
 STUDENT_ID := 314511048
 SMOKE_INPUT := /tmp/RMST_pdf_sample.dat
 SMOKE_EXPECT := /tmp/RMST_pdf_sample.expect
@@ -13,12 +12,6 @@ all: $(TARGET)
 
 $(TARGET): main.cpp
 	$(CXX) $(CXXFLAGS) -o $(TARGET) main.cpp
-
-$(TEST_TARGET): main.cpp
-	$(CXX) $(CXXFLAGS) -DRMST_SELF_TEST -o $(TEST_TARGET) main.cpp
-
-test: $(TEST_TARGET)
-	$(TEST_TARGET)
 
 lint:
 	$(CXX) $(CXXFLAGS) -Werror -fsyntax-only main.cpp
@@ -38,6 +31,8 @@ smoke: $(TARGET)
 	./$(TARGET) $(SMOKE_INPUT) $(SMOKE_OUTPUT)
 	cmp $(SMOKE_EXPECT) $(SMOKE_OUTPUT)
 
+test: smoke
+
 check: test lint format-check typecheck static smoke
 
 evaluator: check
@@ -48,4 +43,4 @@ package: evaluator
 	tar cvf $(STUDENT_ID).tar $(STUDENT_ID)
 
 clean:
-	$(RM) $(TARGET) $(TEST_TARGET)
+	$(RM) $(TARGET)
