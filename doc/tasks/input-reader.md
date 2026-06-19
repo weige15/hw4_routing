@@ -25,19 +25,23 @@ Point Storage data contract. CLI and Orchestrator supplies the input path.
 
 ## Tasks
 
-- [ ] Implement buffered integer reading from a file path.
-- [ ] Parse `n` and reject values outside `1..10000000`.
-- [ ] Parse exactly `n` coordinate pairs into points with ids `0..n-1`.
-- [ ] Validate coordinates against `[-1000000000, 1000000000]`.
-- [ ] Preserve duplicate coordinates as distinct points.
-- [ ] Fail safely on unreadable files, missing `n`, missing coordinate pairs, and out-of-range values.
+- [x] Implement buffered integer reading from a file path.
+- [x] Parse `n` and reject values outside `1..10000000`.
+- [x] Parse exactly `n` coordinate pairs into points with ids `0..n-1`.
+- [x] Validate coordinates against `[-1000000000, 1000000000]`.
+- [x] Preserve duplicate coordinates as distinct points.
+- [x] Fail safely on unreadable files, missing `n`, missing coordinate pairs, and out-of-range values.
 
 ## Tests and Quality Gates
 
-- [ ] Check parser behavior on the PDF sample, extra whitespace, negative coordinates, coordinate extremes, duplicate points, too few lines, and `n = 0`.
+- [x] Check parser behavior on the PDF sample, extra whitespace, negative coordinates, coordinate extremes, duplicate points, too few lines, and `n = 0`.
 
 ## Done When
 
-- [ ] Valid assignment inputs produce a complete point vector with stable ids.
-- [ ] Invalid required parser cases fail without crashing or writing an incorrect result.
-- [ ] Parser checks listed in `doc/test-plan.md` pass once tests exist.
+- [x] Valid assignment inputs produce a complete point vector with stable ids.
+- [x] Invalid required parser cases fail without crashing or writing an incorrect result.
+- [x] Parser checks listed in `doc/test-plan.md` pass once tests exist.
+
+## Notes
+
+- 2026-06-20 boundary cycle: parser accepted the PDF sample up to the solver placeholder, accepted duplicate coordinates, accepted whitespace and coordinate extremes, and rejected `n = 0`, too few coordinate pairs, and out-of-range coordinates.

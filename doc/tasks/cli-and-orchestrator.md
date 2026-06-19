@@ -25,20 +25,25 @@ Input Reader, Manhattan MST Candidate Generator, Kruskal MST Solver, Output Writ
 
 ## Tasks
 
-- [ ] Add `main(int argc, char** argv)` with exact two-path argument validation.
-- [ ] Add a `run(input_path, output_path)` style function that owns top-level pipeline sequencing.
-- [ ] Wire reader, candidate generation, Kruskal, and output writer through explicit success/failure status.
-- [ ] Route diagnostics to `stderr` only; never write diagnostics into the output file.
-- [ ] Return nonzero for missing arguments, read failure, solver failure, or output failure.
-- [ ] Verify the valid sample path creates the requested output file.
+- [x] Add `main(int argc, char** argv)` with exact two-path argument validation.
+- [x] Add a `run(input_path, output_path)` style function that owns top-level pipeline sequencing.
+- [x] Wire reader, candidate generation, Kruskal, and output writer through explicit success/failure status.
+- [x] Route diagnostics to `stderr` only; never write diagnostics into the output file.
+- [x] Return nonzero for missing arguments, read failure, solver failure, or output failure.
+- [x] Verify the valid sample path creates the requested output file.
 
 ## Tests and Quality Gates
 
-- [ ] Run the future CLI missing-arguments check and confirm nonzero exit.
-- [ ] Run the PDF sample through the final executable and confirm output file contains `13` only.
+- [x] Run the future CLI missing-arguments check and confirm nonzero exit.
+- [x] Run the PDF sample through the final executable and confirm output file contains `13` only.
 
 ## Done When
 
-- [ ] The executable accepts `[executable] [input file] [output file]`.
-- [ ] Top-level failures return nonzero without producing a fake RMST total.
-- [ ] CLI smoke checks from `doc/test-plan.md` pass once build/test commands exist.
+- [x] The executable accepts `[executable] [input file] [output file]`.
+- [x] Top-level failures return nonzero without producing a fake RMST total.
+- [x] CLI smoke checks from `doc/test-plan.md` pass once build/test commands exist.
+
+## Notes
+
+- 2026-06-20 boundary cycle: missing arguments returned code 1; invalid input returned code 2; solver placeholder returned code 3 for the PDF sample; unwritable output path returned code 4.
+- 2026-06-20 final solver cycle: after candidate generation and Kruskal wiring, the PDF sample CLI run wrote exactly `13`.

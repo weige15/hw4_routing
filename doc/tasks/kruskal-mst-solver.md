@@ -25,19 +25,24 @@ Edge Storage and Disjoint-Set Union. Candidate Generator must supply a connected
 
 ## Tasks
 
-- [ ] Implement `n <= 1` handling with total `0`.
-- [ ] Sort candidate edges by weight and deterministic endpoint tie-breakers.
-- [ ] Use DSU to accept only edges that connect different components.
-- [ ] Accumulate accepted edge weights in signed 64-bit total.
-- [ ] Stop after `n - 1` accepted edges.
-- [ ] Report failure if candidates do not connect all vertices.
+- [x] Implement `n <= 1` handling with total `0`.
+- [x] Sort candidate edges by weight and deterministic endpoint tie-breakers.
+- [x] Use DSU to accept only edges that connect different components.
+- [x] Accumulate accepted edge weights in signed 64-bit total.
+- [x] Stop after `n - 1` accepted edges.
+- [x] Report failure if candidates do not connect all vertices.
 
 ## Tests and Quality Gates
 
-- [ ] Verify all golden test cases through the final CLI once available.
-- [ ] Verify known weighted candidate graphs and tie-heavy cases through unit or self-test checks.
+- [x] Verify all golden test cases through the final CLI once available.
+- [x] Verify known weighted candidate graphs and tie-heavy cases through unit or self-test checks.
 
 ## Done When
 
-- [ ] Kruskal returns exact totals for golden cases and oracle-generated small cases.
-- [ ] Disconnected candidate sets fail instead of producing an incomplete total.
+- [x] Kruskal returns exact totals for golden cases and oracle-generated small cases.
+- [x] Disconnected candidate sets fail instead of producing an incomplete total.
+
+## Notes
+
+- 2026-06-20 core MST cycle: `make test` covers a connected known graph with MST total `6` and a disconnected candidate graph that fails.
+- 2026-06-20 final solver cycle: `make test` covers optimized-vs-oracle randomized cases and all golden cases; CLI golden suite also passed after rebuilding `RMST`.

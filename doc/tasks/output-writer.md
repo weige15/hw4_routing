@@ -25,18 +25,23 @@ Kruskal MST Solver supplies the final total. CLI and Orchestrator supplies the o
 
 ## Tasks
 
-- [ ] Add output file opening and checked write/close behavior.
-- [ ] Write the total as one decimal integer with optional final newline.
-- [ ] Keep diagnostics out of the output file.
-- [ ] Return failure on unwritable output paths or flush errors.
-- [ ] Ensure the output file is written only after solver success.
+- [x] Add output file opening and checked write/close behavior.
+- [x] Write the total as one decimal integer with optional final newline.
+- [x] Keep diagnostics out of the output file.
+- [x] Return failure on unwritable output paths or flush errors.
+- [x] Ensure the output file is written only after solver success.
 
 ## Tests and Quality Gates
 
-- [ ] Verify sample output file contains `13` only.
-- [ ] Verify 64-bit output file contains `4000000000` only for the coordinate-extreme golden case.
+- [x] Verify sample output file contains `13` only.
+- [x] Verify 64-bit output file contains `4000000000` only for the coordinate-extreme golden case.
 
 ## Done When
 
-- [ ] Successful runs create the requested output file with one integer.
-- [ ] Failed runs do not create a valid-looking incorrect result.
+- [x] Successful runs create the requested output file with one integer.
+- [x] Failed runs do not create a valid-looking incorrect result.
+
+## Notes
+
+- 2026-06-20 boundary cycle: single-point input wrote exactly `0`; invalid parser inputs and the multi-point solver placeholder did not create result files; directory output path returned code 4.
+- 2026-06-20 final solver cycle: CLI sample wrote `13`; coordinate-extreme case wrote `4000000000`.

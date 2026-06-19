@@ -25,17 +25,21 @@ None for implementation. Kruskal MST Solver and Small-Case Baseline Oracle depen
 
 ## Tasks
 
-- [ ] Add DSU initialization for `n` vertices with parent and size/rank vectors.
-- [ ] Implement iterative `find` with path compression.
-- [ ] Implement `unite` that returns whether a merge occurred.
-- [ ] Use union by size or rank.
-- [ ] Keep endpoint ids as `uint32_t` and avoid recursion.
+- [x] Add DSU initialization for `n` vertices with parent and size/rank vectors.
+- [x] Implement iterative `find` with path compression.
+- [x] Implement `unite` that returns whether a merge occurred.
+- [x] Use union by size or rank.
+- [x] Keep endpoint ids as `uint32_t` and avoid recursion.
 
 ## Tests and Quality Gates
 
-- [ ] Check singleton components, repeated union on the same pair, transitive connectivity, and large initialization when memory allows.
+- [x] Check singleton components, repeated union on the same pair, transitive connectivity, and large initialization when memory allows.
 
 ## Done When
 
-- [ ] DSU correctly reports merges and already-connected endpoints.
-- [ ] DSU checks from `doc/test-plan.md` pass once tests exist.
+- [x] DSU correctly reports merges and already-connected endpoints.
+- [x] DSU checks from `doc/test-plan.md` pass once tests exist.
+
+## Notes
+
+- 2026-06-20 core MST cycle: `make test` covers singleton root, first merge, repeated merge rejection, transitive merge, and path-compressed connectivity.

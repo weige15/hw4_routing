@@ -77,7 +77,7 @@ Planned internal flow:
 4. `Kruskal MST Solver` sorts candidate edges and uses `Disjoint-Set Union` to accumulate the RMST total.
 5. `Output Writer` writes one decimal integer to the output file.
 
-The sweep design is intentionally vector-backed. It avoids `std::map` node allocation in the hot path while preserving the same ordered-key operations needed by the standard Manhattan MST sweep.
+The sweep design uses the standard ordered-active-set Manhattan MST sweep. The current implementation uses the reference `std::map` active set because it matched the brute-force oracle; replacing it with a vector-backed equivalent remains a performance optimization, not a different algorithm.
 
 ## Shared Data Contracts
 
@@ -349,10 +349,7 @@ The function appends edges. The caller owns the output vector.
 
 - `vector<int64_t> wx`, `wy`: current transformed coordinates by point id.
 - `vector<uint32_t> order`: point ids sorted for each sweep pass.
-- `vector<int64_t> keys`: compressed active keys for each pass.
-- `ActiveSweep`: vector-backed ordered active set:
-  - `Fenwick counts` over active key indices.
-  - `active_id[key_index]` storing the current active point id or invalid.
+- ordered active set keyed by transformed `x` for each pass.
 - `vector<Edge>& edges`: shared candidate edge storage.
 
 #### Internal Design
@@ -369,13 +366,12 @@ This preserves separate duplicate vertices without requiring full deduplication.
 For each sweep pass:
 
 1. Sort `order` by `(wx[id] + wy[id], wx[id], wy[id], id)`.
-2. Build compressed keys from `-wy[id]`.
-3. Clear `ActiveSweep`.
-4. Visit points in sorted order.
-5. Find active keys greater than or equal to the current key.
-6. While an active point satisfies the octant condition, append the Manhattan edge and erase that active point from the sweep state.
-7. Insert or replace the current point at its key.
-8. Apply the next coordinate transform and repeat until all four passes are complete.
+2. Clear the ordered active set keyed by transformed `x` in descending order.
+3. Visit points in sorted order.
+4. Start from the active point with the largest transformed `x` that is still `<= wx[id]`.
+5. While `wx[id] - wy[id] <= wx[other] - wy[other]`, append the Manhattan edge and erase that active point from the sweep state.
+6. Insert or replace the current point at key `wx[id]`.
+7. Apply the next coordinate transform and repeat until all four passes are complete.
 
 #### Algorithm Details
 
@@ -386,20 +382,17 @@ initialize wx[id] = points[id].x, wy[id] = points[id].y
 for pass in 0..3:
     order = all point ids
     sort order by (wx + wy, wx, wy, id)
-    keys = sorted unique values of -wy[id]
-    active.clear(keys.size)
+    active.clear()
 
     for id in order:
-        k = lower_bound(keys, -wy[id])
-        pos = active.first_active_at_or_after(k)
-        while pos exists:
-            other = active.active_id[pos]
-            if wx[id] - wx[other] < wy[id] - wy[other]:
+        it = active.lower_bound(wx[id]) in descending-x order
+        while it exists:
+            other = it.id
+            if wx[id] - wy[id] > wx[other] - wy[other]:
                 break
             append edge using original coordinates of id and other
-            active.erase(pos)
-            pos = active.first_active_at_or_after(pos)
-        active.insert_or_replace(k, id)
+            erase it and advance
+        active[wx[id]] = id
 
     transform working coordinates for next pass:
         pass 0: swap wx and wy
@@ -408,12 +401,12 @@ for pass in 0..3:
         pass 3: done
 ```
 
-The transform schedule may be replaced by an equivalent four-pass Manhattan sweep only if the oracle and golden tests still pass. The detailed design should be updated if that happens.
+This active-set form follows the standard Manhattan MST sweep described by cp-algorithms/KACTL and is validated by oracle and golden tests.
 
 Complexity target:
 
 - Four sorts of `n` ids: `O(n log n)`.
-- Four compressed active sweeps: `O(n log n)`.
+- Four ordered active sweeps: `O(n log n)`.
 - Candidate edge count: expected linear, bounded by the duplicate prepass plus a small constant factor per point.
 
 #### Dependencies
@@ -437,7 +430,7 @@ Complexity target:
 
 #### Open Questions
 
-- The exact transform schedule should be confirmed during implementation against brute-force tests. If the chosen schedule fails, replace it with an equivalent known-correct sweep and update this section.
+- A vector-backed active set can replace `std::map` later if large-input profiling shows allocation overhead matters.
 
 ### Edge Storage
 
